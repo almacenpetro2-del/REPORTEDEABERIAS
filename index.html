@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Petroexpress - Control de Desperfectos | Rojo & Gris + Móvil</title>
+    <!-- Font Awesome 6 + Chart.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #e9ecef;
+            padding: 1rem;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        /* HEADER rojo */
+        .header {
+            background: #9b1c1c;
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-logo {
+            height: 2.4rem;
+            width: auto;
+            margin-right: 0.3rem;
+            vertical-align: middle;
+        }
+        .sub {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            margin-top: 0.2rem;
+        }
+        /* Botón hamburguesa (visible solo móvil) */
+        .hamburger {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: white;
+            cursor: pointer;
+            display: none;
+        }
+        /* Tabs escritorio */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: #dee2e6;
+            border-bottom: 1px solid #ced4da;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem 0 1rem;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1.2rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 2rem 2rem 0 0;
+            transition: 0.2s;
+            color: #2c2c2c;
+        }
+        .tab-btn i {
+            margin-right: 0.5rem;
+        }
+        .tab-btn.active {
+            background: white;
+            color: #9b1c1c;
+            border-bottom: 3px solid #9b1c1c;
+        }
+        .tab-btn:hover:not(.active) {
+            background: #ced4da;
+        }
+        /* Menú móvil (oculto por defecto) */
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0.5rem 0;
+        }
+        .mobile-menu .tab-btn {
+            text-align: left;
+            border-radius: 0;
+            padding: 0.8rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .mobile-menu .tab-btn.active {
+            background: #e9ecef;
+            border-left: 4px solid #9b1c1c;
+            border-bottom: 3px solid #9b1c1c;
+        }
+        .tab-pane {
+            display: none;
+            padding: 1.8rem 2rem;
+            animation: fade 0.2s ease;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(5px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        /* CARDS */
+        .card {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            border: 1px solid #dee2e6;
+            overflow-x: auto;
+        }
+        .card-header {
+            padding: 1rem 1.5rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            color: #2d2d2d;
+        }
+        .btn {
+            background: #9b1c1c;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-success { background: #b91c1c; }
+        .btn-warning { background: #6c757d; }
+        .btn-danger { background: #7a1a1a; }
+        .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.75rem; }
+        .btn:hover { filter: brightness(0.9); transform: scale(0.97); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 0.75rem 0.5rem; text-align: left; border-bottom: 1px solid #dee2e6; }
+        th { background: #f1f3f5; font-weight: 600; color: #2d2d2d; }
+        .badge { background: #e9ecef; padding: 0.2rem 0.6rem; border-radius: 1rem; font-size: 0.7rem; font-weight: 600; }
+        .badge-green { background: #d4edda; color: #155724; }
+        .badge-red { background: #f8d7da; color: #9b1c1c; }
+        .badge-orange { background: #fff3cd; color: #856404; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+        .form-group { flex: 1; min-width: 150px; }
+        label { font-weight: 600; font-size: 0.8rem; display: block; margin-bottom: 0.25rem; color: #2d2d2d; }
+        input, select, textarea { width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 0.6rem; font-size: 0.9rem; background: white; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; max-width: 600px; width: 90%; border-radius: 1.2rem; padding: 1.5rem; border-top: 5px solid #9b1c1c; }
+        .status-operativa { color: #2c7a4d; font-weight: bold; }
+        .status-inoperativa { color: #9b1c1c; font-weight: bold; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .chart-card { background: #fff; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1rem; border: 1px solid #dee2e6; }
+        .chart-card h3 { font-size: 1.1rem; margin-bottom: 1rem; border-left: 4px solid #9b1c1c; padding-left: 0.75rem; color: #2d2d2d; }
+        canvas { max-height: 300px; width: 100%; }
+        .filter-bar { background: #f8f9fa; border-radius: 1rem; padding: 1rem; margin-bottom: 1.5rem; border: 1px solid #dee2e6; }
+        /* responsive */
+        @media (max-width: 768px) {
+            .tabs { display: none; }
+            .hamburger { display: none; }
+            .mobile-menu { display: flex; }
+            .tab-pane { padding: 1rem; }
+            th, td { font-size: 0.7rem; padding: 0.4rem; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .card-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <div>
+            <h1><img src="img/petraseo.png" alt="Logo" class="header-logo"> Petroexpress</h1>
+            <div class="sub">Control de Desperfectos | Rojo & Gris</div>
+        </div>
+        <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <!-- Menú escritorio -->
+    <div class="tabs" id="desktopTabs">
+        <button class="tab-btn active" data-tab="defects"><i class="fas fa-clipboard-list"></i> Desperfectos</button>
+        <button class="tab-btn" data-tab="fleet"><i class="fas fa-truck"></i> Flota</button>
+        <button class="tab-btn" data-tab="unitSummary"><i class="fas fa-chart-line"></i> Resumen</button>
+        <button class="tab-btn" data-tab="stats"><i class="fas fa-chart-pie"></i> Estadísticas</button>
+        <button class="tab-btn" data-tab="plateHistory"><i class="fas fa-search"></i> Historial</button>
+        <button class="tab-btn" data-tab="drivers"><i class="fas fa-users"></i> Conductores</button>
+    </div>
+
+    <!-- Menú móvil (colapsable) -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="tab-btn active" data-tab="defects"><i class="fas fa-clipboard-list"></i> Desperfectos</button>
+        <button class="tab-btn" data-tab="fleet"><i class="fas fa-truck"></i> Flota</button>
+        <button class="tab-btn" data-tab="unitSummary"><i class="fas fa-chart-line"></i> Resumen</button>
+        <button class="tab-btn" data-tab="stats"><i class="fas fa-chart-pie"></i> Estadísticas</button>
+        <button class="tab-btn" data-tab="plateHistory"><i class="fas fa-search"></i> Historial</button>
+        <button class="tab-btn" data-tab="drivers"><i class="fas fa-users"></i> Conductores</button>
+    </div>
+
+    <!-- PANELES (mismo contenido) -->
+    <div id="defects" class="tab-pane active">
+        <div class="card"><div class="card-header"><span><i class="fas fa-plus-circle"></i> Nuevo desperfecto</span><button id="openAddDefectModalBtn" class="btn btn-success"><i class="fas fa-plus"></i> Agregar desperfecto</button></div></div>
+        <div class="card"><div class="card-header"><i class="fas fa-table"></i> Listado de desperfectos</div><div style="overflow-x: auto;"><table id="defectsTable"><thead><tr><th>ID</th><th>Fecha</th><th>Hora</th><th>Placa</th><th>Conductor</th><th>Desperfecto</th><th>Sistema</th><th>Severidad</th><th>Fecha Rep.</th><th>Días paro</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="defectsTbody"></tbody></table></div></div>
+    </div>
+    <div id="fleet" class="tab-pane"><div class="card"><div class="card-header"><i class="fas fa-list"></i> Flota Petroexpress – Estado actual</div><div style="overflow-x: auto;"><table id="fleetTable"><thead><tr><th>Placa</th><th>Descripción</th><th>Tipo</th><th>Marca</th><th>Año</th><th>Estado</th><th>Total Desp.</th></tr></thead><tbody id="fleetTbody"></tbody></table></div></div></div>
+    <div id="unitSummary" class="tab-pane"><div class="card"><div class="card-header"><i class="fas fa-chart-simple"></i> Desperfectos por unidad – última incidencia</div><div style="overflow-x: auto;"><table id="summaryTable"><thead><tr><th>Placa</th><th>Descripción</th><th>Tipo</th><th>Última fecha</th><th>Último desperfecto</th><th>Sistema</th><th>Severidad</th><th>Último conductor</th><th>Estado actual</th><th>Total</th></tr></thead><tbody id="summaryTbody"></tbody></table></div></div></div>
+    <div id="stats" class="tab-pane">
+        <div class="filter-bar"><h4 style="margin-bottom: 0.75rem;"><i class="fas fa-filter"></i> Filtros dinámicos</h4><div class="form-row"><div class="form-group"><label>Fecha desde</label><input type="date" id="filterFechaDesde"></div><div class="form-group"><label>Fecha hasta</label><input type="date" id="filterFechaHasta"></div><div class="form-group"><label>Placa (múltiple)</label><select id="filterPlacas" multiple size="2"></select></div><div class="form-group"><label>Sistema</label><select id="filterSistemas" multiple size="2"><option value="ELÉCTRICO">ELÉCTRICO</option><option value="HIDRÁULICO">HIDRÁULICO</option><option value="NEUMÁTICOS">NEUMÁTICOS</option><option value="OTRO">OTRO</option></select></div><div class="form-group"><label>Severidad</label><select id="filterSeveridades" multiple size="2"><option value="LEVE">LEVE</option><option value="MODERADO">MODERADO</option><option value="GRAVE">GRAVE</option></select></div></div><div class="form-row"><div class="form-group"><button id="applyStatsFilters" class="btn btn-success"><i class="fas fa-chart-line"></i> Actualizar gráficos</button></div></div></div>
+        <div class="charts-grid"><div class="chart-card"><h3><i class="fas fa-chart-bar"></i> Desperfectos por placa</h3><canvas id="chartPlacas"></canvas></div><div class="chart-card"><h3><i class="fas fa-chart-pie"></i> Por severidad</h3><canvas id="chartSeveridad"></canvas></div><div class="chart-card"><h3><i class="fas fa-microchip"></i> Por sistema</h3><canvas id="chartSistemas"></canvas></div><div class="chart-card"><h3><i class="fas fa-calendar-week"></i> Tendencia diaria</h3><canvas id="chartTendencia"></canvas></div></div>
+        <div class="card"><div class="card-header"><i class="fas fa-table"></i> Resumen estadístico (filtros)</div><div style="overflow-x: auto;"><table id="statsTableResumen"><thead><tr><th>Placa</th><th>Total</th><th>EN TALLER</th><th>REPARADOS</th><th>PENDIENTES*</th></tr></thead><tbody id="statsTbodyResumen"></tbody><tfoot id="statsFootResumen"></tfoot></table><p class="badge">*Pendientes: PENDIENTE / EN REPORTE</p></div></div>
+    </div>
+    <div id="plateHistory" class="tab-pane"><div class="card"><div class="card-header">Historial por placa</div><div class="form-row" style="padding: 0 1rem 1rem 1rem;"><div class="form-group"><label>Placa:</label><select id="historyPlateSelect"></select></div><div class="form-group"><button id="filterHistoryBtn" class="btn"><i class="fas fa-filter"></i> Filtrar</button></div></div><div style="overflow-x: auto; padding: 0 1rem 1rem 1rem;"><table id="historyTable"><thead><tr><th>Fecha</th><th>Hora</th><th>Conductor</th><th>Desperfecto</th><th>Sistema</th><th>Severidad</th><th>Fecha Rep.</th><th>Estado</th></tr></thead><tbody id="historyTbody"></tbody></table></div></div></div>
+    <div id="drivers" class="tab-pane">
+        <div class="card"><div class="card-header flex-between"><span><i class="fas fa-id-card"></i> Conductores activos</span><button id="addDriverBtn" class="btn btn-sm btn-success"><i class="fas fa-user-plus"></i> Añadir conductor</button></div><div style="overflow-x: auto;"><table id="driversTable" style="width:100%"><thead><tr><th>Nombre</th><th>Acciones</th></tr></thead><tbody id="driversTbody"></tbody></table></div></div>
+    </div>
+</div>
+
+<!-- MODAL AGREGAR/EDITAR DESPERFECTO -->
+<div id="defectModal" class="modal" style="display: none;"><div class="modal-content"><h3 id="modalTitle">Agregar desperfecto</h3><form id="defectForm"><input type="hidden" id="defectId"><div class="form-row"><div class="form-group"><label>Fecha reporte</label><input type="date" id="repDate" required></div><div class="form-group"><label>Hora reporte</label><input type="time" id="repTime" required></div></div><div class="form-row"><div class="form-group"><label>Placa</label><select id="plateSelect" required></select></div><div class="form-group"><label>Conductor</label><select id="driverSelect" required></select></div></div><div class="form-row"><div class="form-group"><label>Descripción</label><textarea id="description" rows="2"></textarea></div></div><div class="form-row"><div class="form-group"><label>Sistema</label><select id="systemSelect"><option>ELÉCTRICO</option><option>HIDRÁULICO</option><option>NEUMÁTICOS</option><option>OTRO</option></select></div><div class="form-group"><label>Severidad</label><select id="severitySelect"><option>LEVE</option><option>MODERADO</option><option>GRAVE</option></select></div></div><div class="form-row"><div class="form-group"><label>Fecha reparación</label><input type="date" id="repairDate"></div><div class="form-group"><label>Hora reparación</label><input type="time" id="repairTime"></div></div><div class="form-row"><div class="form-group"><label>Estado</label><select id="statusSelect"><option>PENDIENTE</option><option>EN REPORTE</option><option>EN TALLER</option><option>REPARADO</option></select></div><div class="form-group"><label>Observaciones</label><input type="text" id="observations"></div></div><div class="form-row" style="justify-content: flex-end;"><button type="button" class="btn btn-danger" id="closeModalBtn">Cancelar</button><button type="submit" class="btn btn-success">Guardar</button></div></form></div></div>
+
+<script>
+    // ---------- SUPABASE ----------
+    const SUPABASE_URL = "https://nmvsuadyjfxpagptpben.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdnN1YWR5amZ4cGFncHRwYmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTIxMDUsImV4cCI6MjA5NjI2ODEwNX0.7lFQ8RR8s68ofx480rPu1hLagPeV5R3YV2BWUiWl5Fw";
+    let supabase = null;
+    let ChartsReady = false;
+
+    function loadScript(src) {
+        return new Promise((resolve) => {
+            const s = document.createElement("script");
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = resolve;
+            document.head.appendChild(s);
+        });
+    }
+
+    // ---------- DATA ----------
+    let defects = [];
+    let fleet = [];
+    let drivers = new Set();
+    let nextId = 1;
+
+    function computeDaysStop(reportDate, repairDate) {
+        if (!reportDate || !repairDate) return "";
+        const diff = (new Date(repairDate) - new Date(reportDate)) / (1000 * 3600 * 24);
+        return diff >= 0 ? Math.ceil(diff) : "";
+    }
+
+    function defectToJS(row) {
+        return {
+            id: row.id,
+            dateReport: row.date_report,
+            timeReport: row.time_report,
+            plate: row.plate,
+            driver: row.driver,
+            description: row.description,
+            system: row.system,
+            severity: row.severity,
+            dateRepair: row.date_repair || "",
+            timeRepair: row.time_repair || "",
+            status: row.status,
+            obs: row.observations || "",
+            daysStop: computeDaysStop(row.date_report, row.date_repair || "")
+        };
+    }
+
+    function defectToDB(d) {
+        return {
+            date_report: d.dateReport,
+            time_report: d.timeReport,
+            plate: d.plate,
+            driver: d.driver,
+            description: d.description,
+            system: d.system,
+            severity: d.severity,
+            date_repair: d.dateRepair || null,
+            time_repair: d.timeRepair || null,
+            status: d.status,
+            observations: d.obs || ""
+        };
+    }
+
+    // ---------- LOCALSTORAGE ----------
+    const fleetDataRaw = [
+        { plate:"BWR-724", desc:"Unidad Compacta 1", type:"COMPACTA", brand:"SHACMAN", year:"2023" },
+        { plate:"BWP-886", desc:"Unidad Compacta 2", type:"COMPACTA", brand:"SHACMAN", year:"2023" },
+        { plate:"BWQ-764", desc:"Unidad Compacta 3", type:"COMPACTA", brand:"SHACMAN", year:"2023" },
+        { plate:"BWP-917", desc:"Unidad Compacta 4", type:"COMPACTA", brand:"SHACMAN", year:"2023" },
+        { plate:"BWQ-863", desc:"Unidad Compacta 5", type:"COMPACTA", brand:"SHACMAN", year:"2023" },
+        { plate:"BZV-711", desc:"Unidad Compacta 6", type:"COMPACTA", brand:"SHACMAN", year:"2024" },
+        { plate:"BZV-736", desc:"Unidad Compacta 7", type:"COMPACTA", brand:"SHACMAN", year:"2024" },
+        { plate:"BZU-913", desc:"Unidad Compacta 8", type:"COMPACTA", brand:"SHACMAN", year:"2024" },
+        { plate:"CBJ-823", desc:"Cisterna 1", type:"CISTERNA", brand:"FOTON", year:"2025" },
+        { plate:"CBN-920", desc:"Cisterna 2", type:"CISTERNA", brand:"FOTON", year:"2025" },
+        { plate:"BMB-818", desc:"Hidrolavado 1", type:"HIDROLAVADO", brand:"DONGFENG", year:"2022" },
+        { plate:"BMB-794", desc:"Hidrolavado 2", type:"HIDROLAVADO", brand:"DONGFENG", year:"2022" },
+        { plate:"BMD-830", desc:"Hidrolavado 3", type:"HIDROLAVADO", brand:"DONGFENG", year:"2022" },
+        { plate:"BMA-793", desc:"Hidrolavado 4", type:"HIDROLAVADO", brand:"DONGFENG", year:"2022" },
+        { plate:"BMC-738", desc:"Hidrolavado 5", type:"HIDROLAVADO", brand:"DONGFENG", year:"2022" },
+        { plate:"BMB-902", desc:"Baranda 1", type:"BARANDA", brand:"DONGFENG", year:"2022" },
+        { plate:"N°1", desc:"Barredora N°1", type:"BARREDORA MECÁNICA", brand:"NILFISK", year:"2024" },
+        { plate:"N°2", desc:"Barredora N°2", type:"BARREDORA MECÁNICA", brand:"NILFISK", year:"2024" },
+        { plate:"N°3", desc:"Barredora N°3", type:"BARREDORA MECÁNICA", brand:"NILFISK", year:"2024" },
+        { plate:"N°4", desc:"Fregadora N°1", type:"FREGADORA MECÁNICA", brand:"NILFISK", year:"2024" },
+        { plate:"N°5", desc:"Fregadora N°2", type:"FREGADORA MECÁNICA", brand:"NILFISK", year:"2024" },
+        { plate:"V2Q-773", desc:"Unidad Adicional 1", type:"CISTERNA COMBUSTIBLE", brand:"N/D", year:"N/D" },
+        { plate:"C7I-730", desc:"Unidad Adicional 2", type:"CISTERNA COMBUSTIBLE", brand:"N/D", year:"N/D" },
+        { plate:"BRH-906", desc:"Unidad Adicional 3", type:"N/D", brand:"N/D", year:"N/D" }
+    ];
+
+    const driverNamesList = ["ALCCA CCAHUANA NEPTALI ROLANDO","ARAUJO QUISPE EDGAR","ARROYO DELGADO JHON ROYNER","ASCANOA CONDOR DANIEL","BARRIOS ALVAREZ DAVID","CHIRINOS GONZALES MARCO ANTONIO","CURIPACO MALLMA FRANCO SONY","GOICOCHEA SALCEDO GUILLERMO","GOMEZ ROCA FERNANDO","GRILLET ARGENIS RAMON","GUTIERREZ HUANAY JORGE LUIS","JERI CHAVEZ GUSTAVO ORLANDO","LLACTAHUAMAN GUERRERO WALTER","MARRON BALDEON JOSE MANUEL","MARTINEZ LEANDRO JORGE LUIS","MIRAVAL RODENAS JORGE VISA","PALOMINO ASTO JHON GELVERT","PALOMINO CAJA JOSE ARISTIDES","PAUCAR AGUILERA DIEGO","QUISPE PERALES CHRISTHIAN AMERICO","RIVERA HUANUQUEÑO GERSON MARIO","ROBLES GORA SANTIAGO","SANTIAGO MURGA MAXIMO","VALDERRAMA CAMILO DANI DANIEL","VELASQUEZ MAMANI WALTER","TUPAC VILLEGAS ROBBY"];
+
+    function saveToLocal() {
+        localStorage.setItem("petroexpress_defects", JSON.stringify(defects));
+        localStorage.setItem("petroexpress_drivers", JSON.stringify([...drivers]));
+        localStorage.setItem("petroexpress_fleet", JSON.stringify(fleet));
+    }
+
+    function loadFromLocal() {
+        const storedDefects = localStorage.getItem("petroexpress_defects");
+        if (storedDefects) defects = JSON.parse(storedDefects);
+        const storedDrivers = localStorage.getItem("petroexpress_drivers");
+        if (storedDrivers) drivers = new Set(JSON.parse(storedDrivers));
+        const storedFleet = localStorage.getItem("petroexpress_fleet");
+        if (storedFleet) fleet = JSON.parse(storedFleet);
+        if (defects.length) nextId = Math.max(...defects.map(d => d.id), 0) + 1;
+    }
+
+    // ---------- SUPABASE SYNC ----------
+    async function loadFromSupabase() {
+        if (!supabase) return null;
+        try {
+            const { data: fleetData, error: fErr } = await supabase.from("fleet").select("*").order("id");
+            if (!fErr && fleetData && fleetData.length) {
+                fleet = fleetData.map(f => ({ plate: f.plate, desc: f.description, type: f.type, brand: f.brand, year: f.year }));
+            }
+            const { data: driverData, error: dErr } = await supabase.from("drivers").select("*").order("name");
+            if (!dErr && driverData && driverData.length) {
+                drivers = new Set(driverData.map(d => d.name));
+            }
+            const { data: defectData, error: defErr } = await supabase.from("defects").select("*").order("id");
+            if (!defErr && defectData && defectData.length) {
+                defects = defectData.map(defectToJS);
+                if (defects.length) nextId = Math.max(...defects.map(d => d.id), 0) + 1;
+            }
+            return { fleetData, driverData, defectData };
+        } catch(e) {
+            console.warn("Supabase no responde, usando localStorage:", e.message);
+            return null;
+        }
+    }
+
+    async function syncToSupabase() {
+        if (!supabase) return;
+        try {
+            // Upsert fleet
+            for (const f of fleet) {
+                await supabase.from("fleet").upsert({ plate: f.plate, description: f.desc, type: f.type, brand: f.brand, year: f.year }, { onConflict: "plate" });
+            }
+            // Upsert drivers
+            for (const name of drivers) {
+                await supabase.from("drivers").upsert({ name }, { onConflict: "name" });
+            }
+            // Upsert defects
+            for (const d of defects) {
+                await supabase.from("defects").upsert(defectToDB(d), { onConflict: "id" });
+            }
+        } catch(e) { console.warn("Sync Supabase:", e.message); }
+    }
+
+    // ---------- RENDERS ----------
+    function renderDefectsTable() {
+        const tbody = document.getElementById("defectsTbody");
+        tbody.innerHTML = defects.map(d => `<tr><td>${d.id}</td><td>${d.dateReport}</td><td>${d.timeReport}</td><td>${d.plate}</td><td>${d.driver}</td><td>${d.description}</td><td>${d.system}</td><td>${d.severity}</td><td>${d.dateRepair || "-"}</td><td>${d.daysStop !== "" ? d.daysStop : "-"}</td><td><span class="badge ${d.status==='REPARADO'?'badge-green':d.status==='EN TALLER'?'badge-red':'badge-orange'}">${d.status}</span></td><td><button class="btn btn-sm btn-warning editDefectBtn" data-id="${d.id}"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger deleteDefectBtn" data-id="${d.id}"><i class="fas fa-trash"></i></button></td></tr>`).join("");
+        attachDefectEvents();
+    }
+
+    function attachDefectEvents() {
+        document.querySelectorAll('.editDefectBtn').forEach(btn => btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id))));
+        document.querySelectorAll('.deleteDefectBtn').forEach(btn => btn.addEventListener('click', () => { if(confirm("Eliminar desperfecto?")) deleteDefect(parseInt(btn.dataset.id)); }));
+    }
+
+    async function deleteDefect(id) {
+        defects = defects.filter(d => d.id !== id);
+        saveToLocal();
+        if (supabase) supabase.from("defects").delete().eq("id", id).then(() => {}).catch(() => {});
+        renderAll();
+    }
+
+    function openEditModal(id) { const d = defects.find(dd => dd.id === id); if(d) fillModal(d, true); }
+
+    function fillModal(def, isEdit = false) {
+        document.getElementById("modalTitle").innerText = isEdit ? "Editar desperfecto" : "Agregar desperfecto";
+        document.getElementById("defectId").value = def.id || "";
+        document.getElementById("repDate").value = def.dateReport || "";
+        document.getElementById("repTime").value = def.timeReport || "";
+        document.getElementById("plateSelect").value = def.plate || "";
+        document.getElementById("driverSelect").value = def.driver || "";
+        document.getElementById("description").value = def.description || "";
+        document.getElementById("systemSelect").value = def.system || "OTRO";
+        document.getElementById("severitySelect").value = def.severity || "MODERADO";
+        document.getElementById("repairDate").value = def.dateRepair || "";
+        document.getElementById("repairTime").value = def.timeRepair || "";
+        document.getElementById("statusSelect").value = def.status || "PENDIENTE";
+        document.getElementById("observations").value = def.obs || "";
+        document.getElementById("defectModal").style.display = "flex";
+    }
+
+    async function addUpdateDefect(e) {
+        e.preventDefault();
+        const idVal = document.getElementById("defectId").value;
+        const newDefect = {
+            id: idVal ? parseInt(idVal) : nextId++,
+            dateReport: document.getElementById("repDate").value,
+            timeReport: document.getElementById("repTime").value,
+            plate: document.getElementById("plateSelect").value,
+            driver: document.getElementById("driverSelect").value,
+            description: document.getElementById("description").value,
+            system: document.getElementById("systemSelect").value,
+            severity: document.getElementById("severitySelect").value,
+            dateRepair: document.getElementById("repairDate").value || "",
+            timeRepair: document.getElementById("repairTime").value || "",
+            status: document.getElementById("statusSelect").value,
+            obs: document.getElementById("observations").value,
+            daysStop: 0
+        };
+        newDefect.daysStop = computeDaysStop(newDefect.dateReport, newDefect.dateRepair);
+        if (idVal) {
+            const idx = defects.findIndex(d => d.id == idVal);
+            if (idx !== -1) defects[idx] = newDefect;
+        } else {
+            defects.push(newDefect);
+        }
+        saveToLocal();
+        if (supabase) {
+            const row = defectToDB(newDefect);
+            if (idVal) supabase.from("defects").update(row).eq("id", idVal).then(() => {}).catch(() => {});
+            else supabase.from("defects").insert(row).then(() => {}).catch(() => {});
+        }
+        renderAll();
+        document.getElementById("defectModal").style.display = "none";
+    }
+
+    function renderFleet() {
+        const totals = defects.reduce((acc, d) => { acc[d.plate] = (acc[d.plate] || 0) + 1; return acc; }, {});
+        const inTallerPlates = new Set(defects.filter(d => d.status === "EN TALLER").map(d => d.plate));
+        document.getElementById("fleetTbody").innerHTML = fleet.map(f => `<tr><td>${f.plate}</td><td>${f.desc}</td><td>${f.type}</td><td>${f.brand}</td><td>${f.year}</td><td class="${!inTallerPlates.has(f.plate) ? 'status-operativa' : 'status-inoperativa'}">${!inTallerPlates.has(f.plate) ? "🟢 OPERATIVA" : "🔴 INOPERATIVA"}</td><td>${totals[f.plate] || 0}</td></tr>`).join("");
+    }
+
+    function renderUnitSummary() {
+        const rows = fleet.map(unit => {
+            const unitDefects = defects.filter(d => d.plate === unit.plate).sort((a, b) => new Date(b.dateReport + "T" + b.timeReport) - new Date(a.dateReport + "T" + a.timeReport));
+            const last = unitDefects[0];
+            const total = unitDefects.length;
+            if (!last) return `<tr><td>${unit.plate}</td><td>${unit.desc}</td><td>${unit.type}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>🟢 OPERATIVA</td><td>0</td></tr>`;
+            const inTaller = defects.some(d => d.plate === unit.plate && d.status === "EN TALLER");
+            return `<tr><td>${unit.plate}</td><td>${unit.desc}</td><td>${unit.type}</td><td>${last.dateReport}</td><td>${last.description}</td><td>${last.system}</td><td>${last.severity}</td><td>${last.driver}</td><td>${inTaller ? "🔴 INOPERATIVA" : "🟢 OPERATIVA"}</td><td>${total}</td></tr>`;
+        }).join("");
+        document.getElementById("summaryTbody").innerHTML = rows;
+    }
+
+    function renderDriversTable() {
+        const tbody = document.getElementById("driversTbody");
+        const driverArray = Array.from(drivers).sort();
+        tbody.innerHTML = driverArray.map(driver => `
+            <tr>
+                <td>${escapeHtml(driver)}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning editDriverBtn" data-name="${escapeHtml(driver)}"><i class="fas fa-edit"></i> Editar</button>
+                    <button class="btn btn-sm btn-danger deleteDriverBtn" data-name="${escapeHtml(driver)}"><i class="fas fa-trash"></i> Eliminar</button>
+                </td>
+            </tr>
+        `).join("");
+        document.querySelectorAll('.editDriverBtn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const oldName = btn.getAttribute('data-name');
+                const newName = prompt("Nuevo nombre del conductor:", oldName);
+                if (newName && newName.trim() !== "" && newName.trim() !== oldName) {
+                    if (drivers.has(newName.trim())) { alert("El conductor ya existe."); return; }
+                    drivers.delete(oldName);
+                    drivers.add(newName.trim());
+                    defects.forEach(d => { if (d.driver === oldName) d.driver = newName.trim(); });
+                    saveToLocal();
+                    if (supabase) {
+                        supabase.from("drivers").update({ name: newName.trim() }).eq("name", oldName).then(() => {}).catch(() => {});
+                        supabase.from("defects").update({ driver: newName.trim() }).eq("driver", oldName).then(() => {}).catch(() => {});
+                    }
+                    renderAll();
+                }
+            });
+        });
+        document.querySelectorAll('.deleteDriverBtn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const name = btn.getAttribute('data-name');
+                if (confirm(`¿Eliminar conductor "${name}"?`)) {
+                    drivers.delete(name);
+                    saveToLocal();
+                    if (supabase) supabase.from("drivers").delete().eq("name", name).then(() => {}).catch(() => {});
+                    renderAll();
+                }
+            });
+        });
+    }
+
+    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+
+    function populateSelects() {
+        const plates = fleet.map(f => f.plate);
+        document.getElementById("plateSelect").innerHTML = plates.map(p => `<option value="${p}">${p}</option>`).join("");
+        document.getElementById("driverSelect").innerHTML = Array.from(drivers).sort().map(d => `<option value="${d}">${d}</option>`).join("");
+        document.getElementById("historyPlateSelect").innerHTML = `<option value="">-- Seleccione --</option>` + plates.map(p => `<option value="${p}">${p}</option>`).join("");
+        document.getElementById("filterPlacas").innerHTML = plates.map(p => `<option value="${p}">${p}</option>`).join("");
+    }
+
+    function renderHistory(plate) {
+        if (!plate) return;
+        const filtered = defects.filter(d => d.plate === plate).sort((a, b) => new Date(b.dateReport + "T" + b.timeReport) - new Date(a.dateReport + "T" + a.timeReport));
+        document.getElementById("historyTbody").innerHTML = filtered.map(d => `<tr><td>${d.dateReport}</td><td>${d.timeReport}</td><td>${d.driver}</td><td>${d.description}</td><td>${d.system}</td><td>${d.severity}</td><td>${d.dateRepair || "-"}</td><td>${d.status}</td></tr>`).join("");
+    }
+
+    // ---------- GRÁFICOS ----------
+    let charts = {};
+    function getFilteredDefects() {
+        let filtered = [...defects];
+        const desde = document.getElementById("filterFechaDesde").value, hasta = document.getElementById("filterFechaHasta").value;
+        if (desde) filtered = filtered.filter(d => d.dateReport >= desde);
+        if (hasta) filtered = filtered.filter(d => d.dateReport <= hasta);
+        const placasSel = Array.from(document.getElementById("filterPlacas").selectedOptions).map(opt => opt.value);
+        if (placasSel.length) filtered = filtered.filter(d => placasSel.includes(d.plate));
+        const sistemasSel = Array.from(document.getElementById("filterSistemas").selectedOptions).map(opt => opt.value);
+        if (sistemasSel.length) filtered = filtered.filter(d => sistemasSel.includes(d.system));
+        const severidadesSel = Array.from(document.getElementById("filterSeveridades").selectedOptions).map(opt => opt.value);
+        if (severidadesSel.length) filtered = filtered.filter(d => severidadesSel.includes(d.severity));
+        return filtered;
+    }
+
+    function updateChartsAndTable() {
+        const filtered = getFilteredDefects();
+        const placasMap = new Map(); filtered.forEach(d => placasMap.set(d.plate, (placasMap.get(d.plate) || 0) + 1));
+        const placasLabels = Array.from(placasMap.keys()), placasData = placasLabels.map(p => placasMap.get(p));
+        const severidadMap = { LEVE: 0, MODERADO: 0, GRAVE: 0 }; filtered.forEach(d => severidadMap[d.severity]++);
+        const sistemaMap = new Map(); filtered.forEach(d => sistemaMap.set(d.system, (sistemaMap.get(d.system) || 0) + 1));
+        const sistemaLabels = Array.from(sistemaMap.keys()), sistemaData = sistemaLabels.map(s => sistemaMap.get(s));
+        const trendMap = new Map(); filtered.forEach(d => trendMap.set(d.dateReport, (trendMap.get(d.dateReport) || 0) + 1));
+        const trendLabels = Array.from(trendMap.keys()).sort(), trendData = trendLabels.map(l => trendMap.get(l));
+        if (typeof Chart !== "undefined") {
+            if (charts.placas) charts.placas.destroy();
+            if (charts.severidad) charts.severidad.destroy();
+            if (charts.sistemas) charts.sistemas.destroy();
+            if (charts.tendencia) charts.tendencia.destroy();
+            charts.placas = new Chart(document.getElementById("chartPlacas"), { type: 'bar', data: { labels: placasLabels, datasets: [{ label: 'Cantidad', data: placasData, backgroundColor: '#9b1c1c' }] } });
+            charts.severidad = new Chart(document.getElementById("chartSeveridad"), { type: 'pie', data: { labels: ['LEVE', 'MODERADO', 'GRAVE'], datasets: [{ data: [severidadMap.LEVE, severidadMap.MODERADO, severidadMap.GRAVE], backgroundColor: ['#6c757d', '#9b1c1c', '#4a1515'] }] } });
+            charts.sistemas = new Chart(document.getElementById("chartSistemas"), { type: 'bar', data: { labels: sistemaLabels, datasets: [{ label: 'Incidencias', data: sistemaData, backgroundColor: '#b91c1c' }] } });
+            charts.tendencia = new Chart(document.getElementById("chartTendencia"), { type: 'line', data: { labels: trendLabels, datasets: [{ label: 'Reportes diarios', data: trendData, borderColor: '#9b1c1c', tension: 0.2, fill: false, pointBackgroundColor: '#6c757d' }] } });
+        }
+        const statsMap = new Map();
+        filtered.forEach(d => { if (!statsMap.has(d.plate)) statsMap.set(d.plate, { total: 0, taller: 0, reparados: 0, pend: 0 }); let stat = statsMap.get(d.plate); stat.total++; if (d.status === "EN TALLER") stat.taller++; else if (d.status === "REPARADO") stat.reparados++; else stat.pend++; });
+        const tbody = document.getElementById("statsTbodyResumen"); tbody.innerHTML = ""; let grandTotal = 0, grandTaller = 0, grandRep = 0, grandPen = 0;
+        for (let [plate, vals] of statsMap.entries()) { grandTotal += vals.total; grandTaller += vals.taller; grandRep += vals.reparados; grandPen += vals.pend; tbody.innerHTML += `<tr><td>${plate}</td><td>${vals.total}</td><td>${vals.taller}</td><td>${vals.reparados}</td><td>${vals.pend}</td></tr>`; }
+        document.getElementById("statsFootResumen").innerHTML = `<tr style="background:#e9ecef;"><td><strong>TOTAL</strong></td><td><strong>${grandTotal}</strong></td><td><strong>${grandTaller}</strong></td><td><strong>${grandRep}</strong></td><td><strong>${grandPen}</strong></td></tr>`;
+    }
+
+    function renderAll() {
+        defects.forEach(d => { d.daysStop = computeDaysStop(d.dateReport, d.dateRepair); });
+        renderDefectsTable(); renderFleet(); renderUnitSummary(); renderDriversTable(); populateSelects();
+        if (document.getElementById("stats").classList.contains("active")) updateChartsAndTable();
+        if (document.getElementById("historyPlateSelect").value) renderHistory(document.getElementById("historyPlateSelect").value);
+    }
+
+    // ---------- EVENTOS ----------
+    document.getElementById("defectForm").addEventListener("submit", addUpdateDefect);
+    document.getElementById("openAddDefectModalBtn").addEventListener("click", () => fillModal({ id: "", dateReport: "", timeReport: "", plate: fleet[0]?.plate || "", driver: Array.from(drivers)[0] || "", description: "", system: "OTRO", severity: "MODERADO", dateRepair: "", timeRepair: "", status: "PENDIENTE", obs: "" }, false));
+    document.getElementById("closeModalBtn").addEventListener("click", () => document.getElementById("defectModal").style.display = "none");
+
+    document.getElementById("addDriverBtn").addEventListener("click", async () => {
+        const name = prompt("Nombre conductor:");
+        if (name && name.trim() && !drivers.has(name.trim())) {
+            drivers.add(name.trim());
+            saveToLocal();
+            if (supabase) supabase.from("drivers").insert({ name: name.trim() }).then(() => {}).catch(() => {});
+            renderAll();
+        } else { if (name) alert("Nombre inválido o ya existe"); }
+    });
+
+    document.getElementById("filterHistoryBtn").addEventListener("click", () => {
+        const plate = document.getElementById("historyPlateSelect").value;
+        if (plate) renderHistory(plate);
+    });
+
+    document.getElementById("applyStatsFilters").addEventListener("click", () => updateChartsAndTable());
+
+    function switchTab(tabId) {
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+        document.getElementById(tabId).classList.add("active");
+        document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(`.tab-btn[data-tab="${tabId}"]`).forEach(btn => btn.classList.add("active"));
+        if (tabId === "stats") updateChartsAndTable();
+        if (tabId === "drivers") renderDriversTable();
+        if (tabId === "plateHistory" && document.getElementById("historyPlateSelect").value) renderHistory(document.getElementById("historyPlateSelect").value);
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tabId = btn.getAttribute("data-tab");
+            switchTab(tabId);
+        });
+    });
+
+    // ---------- INICIO ----------
+    function initLocalData() {
+        loadFromLocal();
+        if (!fleet.length) fleet = fleetDataRaw;
+        if (!drivers.size) driverNamesList.forEach(d => drivers.add(d));
+        if (!defects.length) {
+            defects = [
+                { id:1, dateReport:"2026-06-02", timeReport:"06:15", plate:"N°1", driver:"JERI CHAVEZ GUSTAVO ORLANDO", description:"LUCES NO FUNCIONAN", system:"ELÉCTRICO", severity:"MODERADO", dateRepair:"2026-06-03", timeRepair:"06:00", status:"REPARADO", obs:"", daysStop:0 },
+                { id:2, dateReport:"2026-06-02", timeReport:"06:15", plate:"N°1", driver:"JERI CHAVEZ GUSTAVO ORLANDO", description:"LLANTA POSTERIOR ESTA DESGASTADA", system:"NEUMÁTICOS", severity:"LEVE", dateRepair:"", timeRepair:"", status:"PENDIENTE", obs:"", daysStop:0 },
+                { id:3, dateReport:"2026-06-02", timeReport:"03:46", plate:"N°4", driver:"ARAUJO QUISPE EDGAR", description:"JEBE LATERAL PARA CAMBIO", system:"OTRO", severity:"MODERADO", dateRepair:"", timeRepair:"", status:"PENDIENTE", obs:"SE SOLICITO EL JEBE", daysStop:0 },
+                { id:4, dateReport:"2026-06-02", timeReport:"15:03", plate:"BZV-736", driver:"PALOMINO ASTO JHON GELVERT", description:"fuga de hidrolina por bomba hidraulica", system:"HIDRÁULICO", severity:"GRAVE", dateRepair:"2026-06-04", timeRepair:"17:00", status:"REPARADO", obs:"", daysStop:0 },
+                { id:5, dateReport:"2026-06-02", timeReport:"22:23", plate:"BWP-886", driver:"MARRON BALDEON JOSE MANUEL", description:"Roto puño de la base del piston hidrulico", system:"HIDRÁULICO", severity:"GRAVE", dateRepair:"2026-06-02", timeRepair:"15:15", status:"REPARADO", obs:"", daysStop:0 },
+                { id:6, dateReport:"2026-06-03", timeReport:"09:13", plate:"BZU-913", driver:"QUISPE PERALES CHRISTHIAN AMERICO", description:"rotura de manguera hidraulica", system:"HIDRÁULICO", severity:"MODERADO", dateRepair:"2026-06-03", timeRepair:"08:44", status:"REPARADO", obs:"Axilio Freddy Reyes", daysStop:0 },
+                { id:7, dateReport:"2026-06-03", timeReport:"10:52", plate:"BWR-724", driver:"ALCCA CCAHUANA NEPTALI ROLANDO", description:"Fuga aceite del motor", system:"HIDRÁULICO", severity:"MODERADO", dateRepair:"2026-06-03", timeRepair:"11:22", status:"REPARADO", obs:"Auxilio mecanico", daysStop:0 },
+                { id:8, dateReport:"2026-06-03", timeReport:"13:18", plate:"BWR-724", driver:"ALCCA CCAHUANA NEPTALI ROLANDO", description:"Bolsa de aire del asiento del piloto", system:"OTRO", severity:"LEVE", dateRepair:"2026-06-03", timeRepair:"14:20", status:"REPARADO", obs:"", daysStop:0 },
+                { id:9, dateReport:"2026-06-04", timeReport:"09:37", plate:"BWQ-863", driver:"MARRON BALDEON JOSE MANUEL", description:"Resume hidrolina por cañeria de metal del techo", system:"HIDRÁULICO", severity:"GRAVE", dateRepair:"", timeRepair:"", status:"EN TALLER", obs:"INGRESA 15:43", daysStop:0 },
+                { id:10, dateReport:"2026-06-04", timeReport:"09:52", plate:"BZU-913", driver:"ROBLES GORA SANTIAGO", description:"fuga de lexiviado por llave de paso la de tina", system:"OTRO", severity:"MODERADO", dateRepair:"2026-06-04", timeRepair:"14:16", status:"REPARADO", obs:"", daysStop:0 },
+                { id:11, dateReport:"2026-06-05", timeReport:"07:34", plate:"N°1", driver:"JERI CHAVEZ GUSTAVO ORLANDO", description:"baja mucho mas de su nivel", system:"OTRO", severity:"MODERADO", dateRepair:"", timeRepair:"", status:"EN REPORTE", obs:"", daysStop:0 },
+                { id:12, dateReport:"2026-06-05", timeReport:"06:31", plate:"BZV-736", driver:"QUISPE PERALES CHRISTHIAN AMERICO", description:"manija interna de puerta del conductor es malograda", system:"OTRO", severity:"LEVE", dateRepair:"", timeRepair:"", status:"EN REPORTE", obs:"", daysStop:0 },
+                { id:13, dateReport:"2026-06-05", timeReport:"07:34", plate:"BWR-724", driver:"TUPAC VILLEGAS ROBBY", description:"fuga de lexiviado por llave de paso la de tina", system:"OTRO", severity:"LEVE", dateRepair:"", timeRepair:"", status:"EN REPORTE", obs:"", daysStop:0 }
+            ];
+            nextId = 14;
+            defects.forEach(d => { d.daysStop = computeDaysStop(d.dateReport, d.dateRepair); });
+        }
+    }
+
+    function bootUI() {
+        saveToLocal();
+        populateSelects();
+        renderAll();
+        const hoy = new Date().toISOString().slice(0, 10);
+        document.getElementById("filterFechaHasta").value = hoy;
+        const hace30 = new Date(); hace30.setDate(hace30.getDate() - 30);
+        document.getElementById("filterFechaDesde").value = hace30.toISOString().slice(0, 10);
+        updateChartsAndTable();
+        renderDriversTable();
+    }
+
+    // 1) Cargar local inmediatamente y renderizar UI (sin esperar CDN)
+    initLocalData();
+    bootUI();
+
+    // 2) En segundo plano, cargar CDN scripts (Chart.js + Supabase)
+    (async function loadDependencies() {
+        await loadScript("https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js");
+        ChartsReady = (typeof Chart !== "undefined");
+
+        await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch(e) { console.warn("Supabase no disponible:", e.message); }
+
+        // Si Chart cargó, redibujar gráficos
+        if (ChartsReady && document.getElementById("stats").classList.contains("active")) {
+            updateChartsAndTable();
+        }
+
+        // Intentar sincronizar con Supabase
+        if (supabase) {
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
+            Promise.race([loadFromSupabase(), timeout])
+                .then(result => {
+                    if (result && result.defectData && result.defectData.length > 0) {
+                        bootUI();
+                    } else {
+                        syncToSupabase().catch(() => {});
+                    }
+                })
+                .catch(() => { syncToSupabase().catch(() => {}); });
+        }
+    })();
+</script>
+</body>
+</html>
