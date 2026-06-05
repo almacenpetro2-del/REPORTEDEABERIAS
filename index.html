@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Petroexpress - Control de Desperfectos | Rojo & Gris + Móvil</title>
+    <title>Control de Desperfectos | Flota</title>
     <!-- Font Awesome 6 + Chart.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -25,7 +25,6 @@
             background: white;
             border-radius: 1.5rem;
             box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            overflow: hidden;
         }
 
         /* HEADER rojo */
@@ -37,6 +36,16 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+        }
+        .sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+        }
+        .header-brand {
+            display: flex;
+            flex-direction: column;
         }
         .header h1 {
             font-size: 1.4rem;
@@ -68,32 +77,32 @@
         .tabs {
             display: flex;
             flex-wrap: wrap;
-            background: #dee2e6;
-            border-bottom: 1px solid #ced4da;
             gap: 0.25rem;
-            padding: 0.5rem 1rem 0 1rem;
+            padding: 0;
+            margin-left: auto;
         }
         .tab-btn {
             background: transparent;
             border: none;
-            padding: 0.75rem 1.2rem;
+            padding: 0.5rem 0.9rem;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             cursor: pointer;
-            border-radius: 2rem 2rem 0 0;
+            border-radius: 2rem;
             transition: 0.2s;
-            color: #2c2c2c;
+            color: rgba(255,255,255,0.8);
+            white-space: nowrap;
         }
         .tab-btn i {
-            margin-right: 0.5rem;
+            margin-right: 0.4rem;
         }
         .tab-btn.active {
             background: white;
             color: #9b1c1c;
-            border-bottom: 3px solid #9b1c1c;
         }
         .tab-btn:hover:not(.active) {
-            background: #ced4da;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
         }
         /* Menú móvil (oculto por defecto) */
         .mobile-menu {
@@ -108,11 +117,20 @@
             border-radius: 0;
             padding: 0.8rem 1.5rem;
             border-bottom: 1px solid #e9ecef;
+            color: #2c2c2c;
         }
         .mobile-menu .tab-btn.active {
             background: #e9ecef;
+            color: #9b1c1c;
             border-left: 4px solid #9b1c1c;
-            border-bottom: 3px solid #9b1c1c;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .mobile-menu .tab-btn:hover:not(.active) {
+            background: #dee2e6;
+            color: #2c2c2c;
+        }
+        .mobile-menu.show {
+            display: flex;
         }
         .tab-pane {
             display: none;
@@ -191,8 +209,7 @@
         /* responsive */
         @media (max-width: 768px) {
             .tabs { display: none; }
-            .hamburger { display: none; }
-            .mobile-menu { display: flex; }
+            .hamburger { display: block; }
             .tab-pane { padding: 1rem; }
             th, td { font-size: 0.7rem; padding: 0.4rem; }
             .charts-grid { grid-template-columns: 1fr; }
@@ -202,22 +219,22 @@
 </head>
 <body>
 <div class="app-container">
+    <div class="sticky-top">
     <div class="header">
-        <div>
-            <h1><img src="img/petraseo.png" alt="Logo" class="header-logo"> Petroexpress</h1>
+        <div class="header-brand">
+            <h1><img src="img/petraseo.png" alt="Logo" class="header-logo"></h1>
             <div class="sub">Control de Desperfectos | Rojo & Gris</div>
         </div>
+        <!-- Menú escritorio -->
+        <div class="tabs" id="desktopTabs">
+            <button class="tab-btn active" data-tab="defects"><i class="fas fa-clipboard-list"></i> Desperfectos</button>
+            <button class="tab-btn" data-tab="fleet"><i class="fas fa-truck"></i> Flota</button>
+            <button class="tab-btn" data-tab="unitSummary"><i class="fas fa-chart-line"></i> Resumen</button>
+            <button class="tab-btn" data-tab="stats"><i class="fas fa-chart-pie"></i> Estadísticas</button>
+            <button class="tab-btn" data-tab="plateHistory"><i class="fas fa-search"></i> Historial</button>
+            <button class="tab-btn" data-tab="drivers"><i class="fas fa-users"></i> Conductores</button>
+        </div>
         <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
-    </div>
-
-    <!-- Menú escritorio -->
-    <div class="tabs" id="desktopTabs">
-        <button class="tab-btn active" data-tab="defects"><i class="fas fa-clipboard-list"></i> Desperfectos</button>
-        <button class="tab-btn" data-tab="fleet"><i class="fas fa-truck"></i> Flota</button>
-        <button class="tab-btn" data-tab="unitSummary"><i class="fas fa-chart-line"></i> Resumen</button>
-        <button class="tab-btn" data-tab="stats"><i class="fas fa-chart-pie"></i> Estadísticas</button>
-        <button class="tab-btn" data-tab="plateHistory"><i class="fas fa-search"></i> Historial</button>
-        <button class="tab-btn" data-tab="drivers"><i class="fas fa-users"></i> Conductores</button>
     </div>
 
     <!-- Menú móvil (colapsable) -->
@@ -229,6 +246,7 @@
         <button class="tab-btn" data-tab="plateHistory"><i class="fas fa-search"></i> Historial</button>
         <button class="tab-btn" data-tab="drivers"><i class="fas fa-users"></i> Conductores</button>
     </div>
+    </div><!-- sticky-top -->
 
     <!-- PANELES (mismo contenido) -->
     <div id="defects" class="tab-pane active">
@@ -637,7 +655,12 @@
         btn.addEventListener("click", () => {
             const tabId = btn.getAttribute("data-tab");
             switchTab(tabId);
+            document.getElementById("mobileMenu").classList.remove("show");
         });
+    });
+
+    document.getElementById("hamburgerBtn").addEventListener("click", () => {
+        document.getElementById("mobileMenu").classList.toggle("show");
     });
 
     // ---------- INICIO ----------
